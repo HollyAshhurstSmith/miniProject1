@@ -1,15 +1,3 @@
-const express = require('express');
-const app = express();
-const PORT = 3000;
-const cors = require('cors'); 
-
-app.use(cors());
-app.use(express.json())
-
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
-
 let recipes = [
     {
         id: 1,
@@ -25,53 +13,65 @@ let recipes = [
     }
 ];
 
-app.get('/recipes', (req, res) => {
-    res.status(200).json(recipes);
-});
+// exported to functions so they can be shared. Logic side
 
-app.get('/recipes/:id', (req, res) => {
+
+export function getAllRecipes(req, res) {
+    res.status(200).json(recipes);
+}
+
+export function getRecipeById(req, res) {
     const id = parseInt(req.params.id);
     const recipe = recipes.find(r => r.id === id);
-    
+
+    // receive recipe (by specific id)
     if (recipe) {
         res.status(200).json(recipe);
+    // If a resource does exist return a 404 (Not found) status code  
     } else {
         res.status(404).json({ message: 'Recipe not found' });
     }
-});
+}
 
-app.post('/recipes', (req, res) => {
+export function createRecipe(req, res) {
     const newRecipe = {
-        id: recipes.length + 1, // not ideal for production but fine here
+        id: recipes.length + 1,
         ...req.body
     };
     recipes.push(newRecipe);
-    res.status(201).json(newRecipe);
-});
+    res.status(201).json(newRecipe);  //adding new recipe with new identifier
+}
 
-app.put('/recipes/:id', (req, res) => {
+export function updateRecipe(req, res) {
     const id = parseInt(req.params.id);
     const index = recipes.findIndex(r => r.id === id);
     
-    if (index !== -1) {
-        recipes[index] = { id, ...req.body };
-        res.status(200).json(recipes[index]);
+    // Create or update a resource
+    recipes[index] = { id, ...req.body };
+    // If a resource does not exist return a 201 (Created) status code
+    if (index === -1) {
+        res.status(201);
+    // If a resource does exist return a 204 (No-Content) status code
     } else {
-        res.status(404).json({ message: 'Recipe not found' });
+        res.status(204);
     }
-});
+    console.log(recipes[index])
+}
 
-app.delete('/recipes/:id', (req, res) => {
+export function deleteRecipe(req, res) {
     const id = parseInt(req.params.id);
     const index = recipes.findIndex(r => r.id === id);
-
+    console.log(recipes[index])
+    // delete recipe
     if (index !== -1) {
         const deleted = recipes.splice(index, 1);
         res.status(200).json(deleted[0]);
+
+    // If a resource does exist return a 404 (Not found) status code 
     } else {
         res.status(404).json({ message: 'Recipe not found' });
     }
-});
+}
 
 
 
